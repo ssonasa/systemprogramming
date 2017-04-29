@@ -11,7 +11,7 @@ typedef struct symrow{
 	int loc;
 }symrow;
 
-void pass1(char* filename);
+void pass1(char* filename, char* output);
 symrow* symTab[1024];
 
 char* opcodes[] = {"ADD", "ADDF", "ADDR", "AND", "CLEAR", "COMP", "COMPF", "COMPR", "DIV", "DIVF",
@@ -29,7 +29,7 @@ char* machinecodes[] = {"18", "58", "90", "40", "B4", "28", "88", "A0", "24", "6
                             "1C", "5C", "94", "B0", "E0", "F8", "2C", "B8", "DC"};
 
 int main(){
-    pass1("FIGURE2-5(TAB).txt");
+    pass1("FIGURE2-5(TAB).txt", "FIGURE2-5(TAB)_OUT.txt");
 }
 
 int hasLabel(char* str){ return !isspace(str[0]); }
@@ -65,18 +65,6 @@ char** parseLine(char* line){
     return col;
 }
 
-
-int determineLOCCTR(char* opcode){
-	if(!strcmp(opcode, "START")){
-		//TODO: save #[OPERAND] as starting address
-		//TODO: init LOCCTR to starting address
-		//TODO: write line to intermediate file
-		return 1000; 
-	}else{
-		return 0;
-	}
-}
-
 int addSYMTAB(char* label, int loc){
 	int i;
 	for(i=0; symTab[i] != NULL; i++){}
@@ -88,21 +76,28 @@ int addSYMTAB(char* label, int loc){
 	return 0;
 }
 
-void pass1(char* filename){
-    int loc;
+void pass1(char* filename, char* output){
+    int loc=0, start_address;
 	char line[1024];
 	FILE* fp = fopen(filename, "r");
+    FILE* fpw = fopen(output, "wt");
 
-    fgets(line, LINE_BUF_SIZE, fp);
-    loc = determineLOCCTR(parseLine(line)[1]);
-
-	while(fgets(line, LINE_BUF_SIZE, fp)){
+	for(int linenum=1; fgets(line, LINE_BUF_SIZE, fp); linenum++){
 		if (isCommentLine(line)) continue;
         char** cols = parseLine(line);
 		char* label = cols[0];
 		char* opcode = cols[1];
+		char* operand = cols[2];
 
         if(!strcmp(opcode, "END")) break;
+
+        if(linenum == 1 && !strcmp(opcode, "START")) { 
+            start_address = loc; // set start_address to locctr
+            sscanf(operand,"%x",&loc); // start address.
+            fprintf(fpw, "%x\t%s\t%s", loc, opcode, operand); // write intermediate file.
+            continue;
+        }
+
         
         //[Label Check]
 		if(strcmp(label, "\t")){
@@ -120,6 +115,7 @@ void pass1(char* filename){
 		if(code != NULL){
 			//TODO: add 3 {instruction length} to LOCCTR
 		}else if(!strcmp(opcode, "WORD")){
+            loc += 3;
 			//TODO: add 3 to LOCCTR
 		}else if(!strcmp(opcode, "RESB")){  // RESB == Byte variable
 			//TODO: add [OPERAND] LOCCTR
@@ -150,4 +146,5 @@ void pass1(char* filename){
 
 	//END Pass 1
     fclose(fp);
+    fclose(fpw);
 }
