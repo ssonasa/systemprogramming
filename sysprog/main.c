@@ -4,7 +4,7 @@
 #include <ctype.h>
 #define LINE_BUF_SIZE 1024
 #define MAX_LINES 1024
-
+#define opcodeNum 60
 
 typedef struct symrow{
 	char* label;
@@ -33,13 +33,14 @@ void file_open();
 void printMap();
 void processPass1();
 symrow* symTab[1024];
-char* asmMap[1024][10] = {};
+char* asmMap[1024][10] = {0};
 
 
 int main() {
+
 	file_open("FIGURE2-5(TAB).txt");
 	processPass1();
-	// printMap();
+	//printMap();
     return 0;
 }
 
@@ -151,6 +152,8 @@ void file_open(char* filename){
 	char line[1024];
 	int linenum = 0;
 	FILE* fp = fopen(filename, "r");
+	FILE* fpw = fopen("C:\\Users\\손\\Source\\Repos\\systemprogramming\\pass1\\pass1\\intermediate.txt", "wt");
+
 
 	while(fgets(line, LINE_BUF_SIZE, fp)){
 		int i=0;
@@ -162,11 +165,35 @@ void file_open(char* filename){
 			asmMap[linenum][i] = (char*) malloc(strlen(ch));
 			strcpy(asmMap[linenum][i], ch);
 			ch = strtok(NULL, " 	\n");
+			//matchingMnemonicToOpcode (asmMap의 Mnemonic부분과 Opcode를 일치시켰을때의 machinecode)
+			if (i == 1) {
+				for (int j = 0; j < opcodeNum - 1; j++) {
+					if (strcmp(opcodes[j], asmMap[linenum][1]) == 0) {
+						//printf("%s = \t", asmMap[linenum][1]);
+						asmMap[linenum][1] = machinecodes[j];
+						printf("%s\n", asmMap[linenum][1]);
+						//printf("%s\n", asmMap[linenum]);
+					}//찾았을때 더이상 찾지 않고 바로 linenum++해야 되는데...
+				}
+			}//여기까지 matchingMnemonicToOpcode.
+
+			//makes intermediate file
+			if (!(strcmp(asmMap[linenum][0], "\t")>0)) {
+				fprintf(fpw, "\t");
+				fprintf(fpw, asmMap[linenum][i]);
+			}
+			else{
+				fprintf(fpw, asmMap[linenum][i]);
+				fprintf(fpw, "\t");
+			}//makes intermediate file
+
 		}
 		linenum++;
+		fprintf(fpw, "\n");
 	}
 
 	fclose(fp);
+	fclose(fpw);
 }
 
 
