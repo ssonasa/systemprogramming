@@ -28,6 +28,13 @@ char* machinecodes[] = {"18", "58", "90", "40", "B4", "28", "88", "A0", "24", "6
                             "0C", "78", "54", "80", "D4", "14", "7C", "E8", "84", "10",
                             "1C", "5C", "94", "B0", "E0", "F8", "2C", "B8", "DC"};
 
+int* size[] = {3, 3, 2, 3, 2, 3, 3, 2, 3, 3,
+                2, 1, 1, 1, 3, 3, 3, 3, 3, 3, 
+                3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 
+                2, 1, 3, 3, 2, 3, 2, 2, 1, 3,
+                3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 
+                3, 3, 2, 2, 3, 1, 3, 2, 3}
+
 int main(){
     pass1("FIGURE2-5(TAB).txt", "FIGURE2-5(TAB)_OUT.txt");
 }
@@ -48,6 +55,16 @@ char* getMachineCode(char* opcode){
 	}
 	return NULL;
 }
+
+char* getOpcodeSize(char* opcode){
+	for(int i=0; opcodes[i]!=NULL; i++){
+		if(!strcmp(opcodes[i], opcode)){
+			return size[i];
+		}
+	}
+	return NULL;
+}
+
 
 
 char** parseLine(char* line){
@@ -77,7 +94,7 @@ int addSYMTAB(char* label, int loc){
 }
 
 void pass1(char* filename, char* output){
-    int loc=0, start_address;
+    int loc=0, start_address, temp;;
 	char line[1024];
 	FILE* fp = fopen(filename, "r");
     FILE* fpw = fopen(output, "wt");
@@ -112,15 +129,17 @@ void pass1(char* filename, char* output){
 
 		//search optab for opcode
 		char* code = getMachineCode(opcode);
-		if(code != NULL){
-			//TODO: add 3 {instruction length} to LOCCTR
-		}else if(!strcmp(opcode, "WORD")){
+		if(code != NULL){ //TODO: add 3 {instruction length} to LOCCTR
+            sscanf(code, "%d", &temp);
+            loc += temp;
+		}else if(!strcmp(opcode, "WORD")){ // TODO: add 3 to LOCCTR
             loc += 3;
-			//TODO: add 3 to LOCCTR
-		}else if(!strcmp(opcode, "RESB")){  // RESB == Byte variable
-			//TODO: add [OPERAND] LOCCTR
-		}else if(!strcmp(opcode, "RESW")){  // RESW == Word variable (Some Bytes) 
-			//TODO: add 3*[OPERAND] to LOCCTR
+		}else if(!strcmp(opcode, "RESB")){  // TODO: add #[OPERAND] LOCCTR
+            sscanf(operand, "%d", &temp);
+            loc += temp;
+		}else if(!strcmp(opcode, "RESW")){  // TODO: add 3*#[OPERAND] to LOCCTR
+            sscanf(operand, "%d", &temp);
+            loc += 3*temp;
 		}else if(!strcmp(opcode, "BYTE")){
 			//TODO
 			// 1. find length of constant in bytes.
