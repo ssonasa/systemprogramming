@@ -39,7 +39,7 @@ char* asmMap[1024][10] = {};
 int main() {
 	file_open("FIGURE2-5(TAB).txt");
 	processPass1();
-	// printMap();
+	printMap();
     return 0;
 }
 
