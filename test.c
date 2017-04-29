@@ -41,7 +41,7 @@ int main(){
 	//     // char* ch = strtok(opcodeStr, "/");
     // }
     char** matrix = allocate_matrix(10, 10);
-    printf("%s", matrix[0]);
+    printf("%s", matrix[0);
 
     return 0;
 }
