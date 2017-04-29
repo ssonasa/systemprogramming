@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{50C020E5-180D-4453-A200-40A75D33053F}</ProjectGuid>
+    <ProjectGuid>{F4F1A003-151E-42AD-A1EB-DED97C4C89E5}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>sysprog</RootNamespace>
+    <RootNamespace>pass1</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -143,10 +143,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\pass1\pass1\intermediate.txt" />
-    <Text Include="FIGURE2-5(TAB).txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
