@@ -248,6 +248,8 @@ void pass2(char* filename, char* output){
             //TODO: convert to constant object code
 		}else if(!strcmp(opcode, "BYTE")){
             //TODO: convert to constant object code
+        }else{
+            code = "00";
         }
 
         if(text_record_cnt<9){ //obejct code will not fit into the current Text record
