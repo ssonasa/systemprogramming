@@ -66,8 +66,9 @@ char* getMachineCode(char* opcode){
 	return NULL;
 }
 
+
 int getOpcodeSize(char* opcode){
-	for(int i=0; opcodes[i]!=NULL; i++){
+	for(int i=0; i<sizeof(machinecodes)/sizeof(char*); i++){
 		if(!strcmp(opcodes[i], opcode)){
 			return size[i];
 		}
@@ -188,20 +189,23 @@ void pass1(char* filename, char* output){
     fclose(fpw);
 }
 
-char* parseLoc(char* line){
+int parseLoc(char* line){
+    int ref;
     char* loc = (char*)malloc(strlen(line));
     strcpy(loc, line);
 
     strtok(loc, "|");
     strcpy(line, strtok(NULL, ""));
     
-    return loc;
+    sscanf(loc,"%x",&ref); // start address.
+    return ref;
 }
 
 void pass2(char* filename, char* output){
 	char line[1024];
 	FILE* fp = fopen(filename, "r");
     FILE* fpw = fopen(output, "wt");
+    int text_record_cnt=9;
 
 	for(int linenum=1; fgets(line, LINE_BUF_SIZE, fp); linenum++){
 		if (isCommentLine(line)) {
@@ -209,7 +213,7 @@ void pass2(char* filename, char* output){
             continue;
         }
 
-        char* loc = parseLoc(line);
+        int loc = parseLoc(line);
         char** cols = parseLine(line);
 		char* label = cols[0];
 		char* opcode = cols[1];
@@ -219,7 +223,9 @@ void pass2(char* filename, char* output){
         if(linenum == 1 && !strcmp(opcode, "START")) { 
             //TODO: write listingline
             //TODO: write header record to object program
-            fprintf(fpw, "H%s", label);
+            fprintf(fpw, "H");
+            fprintf(fpw, "%s", label);
+            
 
             //TODO: initialize first text record
             continue;
@@ -229,6 +235,7 @@ void pass2(char* filename, char* output){
         
         char* code = getMachineCode(opcode);
         if(code != NULL){
+            // printf("%d", getOpcodeSize(opcode));
             if(isExistLabel(operand)){
                 operand_address = getLocFromSYMTAB(operand);
             }else{
@@ -243,12 +250,17 @@ void pass2(char* filename, char* output){
             //TODO: convert to constant object code
         }
 
-        if(NULL){ //obejct code will not fit into the current Text record
-            //write Text record to object program
-            //initialize new text record
-
+        if(text_record_cnt<9){ //obejct code will not fit into the current Text record
+            text_record_cnt++;   
+        }else{
+            fprintf(fpw, "\nT");
+            fprintf(fpw, "%06x", loc);
+            printf("\n");
+            printf("%06x/", loc);
+            text_record_cnt = 0;
         }
-        // add object code to text record
+            printf("%s%x/", code, operand_address+getOpcodeSize(opcode));
+            fprintf(fpw, "%s%x/", code, operand_address+getOpcodeSize(opcode));
     }
 
     //write Text record to object program
