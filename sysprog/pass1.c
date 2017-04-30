@@ -12,6 +12,7 @@ typedef struct symrow{
 }symrow;
 
 void pass1(char* filename, char* output);
+void pass2(char* filename, char* output);
 symrow* symTab[1024];
 
 char* opcodes[] = {"ADD", "ADDF", "ADDR", "AND", "CLEAR", "COMP", "COMPF", "COMPR", "DIV", "DIVF",
@@ -36,13 +37,20 @@ int size[] = {3, 3, 2, 3, 2, 3, 3, 2, 3, 3,
                 3, 3, 2, 2, 3, 1, 3, 2, 3, 4, 4};
 
 int main(){
-    // printf("%s\n", machinecodes[60]);
-    pass1("FIGURE2-5(TAB).txt", "FIGURE2-5(TAB)_OUT.txt");
+    pass1("FIGURE2-5(TAB).txt", "intermediate.txt");
+    pass2("intermediate.txt", "output.txt");
 }
 
 int hasLabel(char* str){ return !isspace(str[0]); }
 int isCommentLine(char* str){ return str[0] == '.'; }
 int isExistLabel(char* label){
+    if(label==NULL) return 0;
+
+    if(label[0] == '#'){
+        // printf("direct");
+    }else if(label[0] == '@'){
+        // printf("indirect", label[0]);
+    }
 	for(int i=0; symTab[i] != NULL; i++)
 		if(!strcmp(label, symTab[i]->label)) return 1;
 	return 0;
@@ -103,8 +111,20 @@ int addSYMTAB(char* label, int loc){
 	return 0;
 }
 
+int getLocFromSYMTAB(char* operand){
+    if(operand==NULL) return 0;
+	for(int i=0; symTab[i] != NULL; i++)
+		if(!strcmp(operand, symTab[i]->label)) return symTab[i]->loc;
+
+    //can't ref address, then set oprand_address to 0.
+
+    // TODO: setError flag;
+    // printf("%s, can't refernece operand!\n", operand);
+	return 0;
+}
+
 void pass1(char* filename, char* output){
-    int loc=0, start_address, temp;;
+    int loc=0, start_address, temp;
 	char line[1024];
 	FILE* fp = fopen(filename, "r");
     FILE* fpw = fopen(output, "wt");
@@ -122,7 +142,7 @@ void pass1(char* filename, char* output){
         if(linenum == 1 && !strcmp(opcode, "START")) { 
             sscanf(operand,"%x",&loc); // start address.
             start_address = loc; // set start_address to locctr
-            fprintf(fpw, "%04x\t%s\t%s\t%s\n", loc, label, opcode, operand); // write intermediate file.
+            fprintf(fpw, "%04x|%s\t%s\t%s\n", loc, label, opcode, operand); // write intermediate file.
             continue;
         }
 
@@ -137,19 +157,18 @@ void pass1(char* filename, char* output){
 		}
 
 		//search optab for opcode
-        fprintf(fpw, "%04x \t %s", loc, line); // write intermediate file.
+        fprintf(fpw, "%04x|%s", loc, line); // write intermediate file.
 
 		char* code = getMachineCode(opcode);
-		if(code != NULL){ //TODO: add 3 {instruction length} to LOCCTR
+		if(code != NULL){
             loc += getOpcodeSize(opcode);
             sscanf(code, "%d", &temp);
-            // loc += temp;
-		}else if(!strcmp(opcode, "WORD")){ // TODO: add 3 to LOCCTR
+		}else if(!strcmp(opcode, "WORD")){
             loc += 3;
-		}else if(!strcmp(opcode, "RESB")){  // TODO: add #[OPERAND] LOCCTR
+		}else if(!strcmp(opcode, "RESB")){
             sscanf(operand, "%d", &temp);
             loc += temp;
-		}else if(!strcmp(opcode, "RESW")){  // TODO: add 3*#[OPERAND] to LOCCTR
+		}else if(!strcmp(opcode, "RESW")){
             sscanf(operand, "%d", &temp);
             loc += 3*temp;
 		}else if(!strcmp(opcode, "BYTE")){
@@ -162,15 +181,79 @@ void pass1(char* filename, char* output){
 		}
 	}
 
-
-
-	//TODO
-	// write last line to intermediate file.
-	// save (LOCCTR - starting address) as program length
-    fprintf(fpw, "length: %04x", loc - start_address); // write intermediate file.
-
+    fprintf(fpw, ".length: %04x", loc - start_address); // write intermediate file.
 
 	//END Pass 1
+    fclose(fp);
+    fclose(fpw);
+}
+
+char* parseLoc(char* line){
+    char* loc = (char*)malloc(strlen(line));
+    strcpy(loc, line);
+
+    strtok(loc, "|");
+    strcpy(line, strtok(NULL, ""));
+    
+    return loc;
+}
+
+void pass2(char* filename, char* output){
+	char line[1024];
+	FILE* fp = fopen(filename, "r");
+    FILE* fpw = fopen(output, "wt");
+
+	for(int linenum=1; fgets(line, LINE_BUF_SIZE, fp); linenum++){
+		if (isCommentLine(line)) {
+            //write listing line
+            continue;
+        }
+
+        char* loc = parseLoc(line);
+        char** cols = parseLine(line);
+		char* label = cols[0];
+		char* opcode = cols[1];
+		char* operand = cols[2];
+        int operand_address = 0;
+
+        if(linenum == 1 && !strcmp(opcode, "START")) { 
+            //TODO: write listingline
+            //TODO: write header record to object program
+            fprintf(fpw, "H%s", label);
+
+            //TODO: initialize first text record
+            continue;
+        }
+
+        if(!strcmp(opcode, "END")) break;
+        
+        char* code = getMachineCode(opcode);
+        if(code != NULL){
+            if(isExistLabel(operand)){
+                operand_address = getLocFromSYMTAB(operand);
+            }else{
+                operand_address = 0;
+            }
+            
+            //TODO: assamble the object code instruction
+
+        }else if(!strcmp(opcode, "WORD")){
+            //TODO: convert to constant object code
+		}else if(!strcmp(opcode, "BYTE")){
+            //TODO: convert to constant object code
+        }
+
+        if(NULL){ //obejct code will not fit into the current Text record
+            //write Text record to object program
+            //initialize new text record
+
+        }
+        // add object code to text record
+    }
+
+    //write Text record to object program
+    //write end text to object program
+
     fclose(fp);
     fclose(fpw);
 }
