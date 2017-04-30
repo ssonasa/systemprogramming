@@ -259,8 +259,8 @@ void pass2(char* filename, char* output){
             printf("%06x/", loc);
             text_record_cnt = 0;
         }
-            printf("%s%x/", code, operand_address+getOpcodeSize(opcode));
-            fprintf(fpw, "%s%x/", code, operand_address+getOpcodeSize(opcode));
+            printf("%s%04x/", code, operand_address);
+            fprintf(fpw, "%s%04x/", code, operand_address);
     }
 
     //write Text record to object program
