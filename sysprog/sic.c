@@ -7,6 +7,7 @@ int main(){
     pass2("intermediate.txt", "output.txt");
 }
 
+
 int hasLabel(char* str){ return !isspace(str[0]); }
 int isCommentLine(char* str){ return str[0] == '.'; }
 int isExistLabel(char* label){
@@ -15,30 +16,24 @@ int isExistLabel(char* label){
 		if(!strcmp(label, symTab[i]->label)) return 1;
 	return 0;
 }
-
 char* getMachineCode(char* opcode){
 	for(int i=0; i<sizeof(machinecodes)/sizeof(char*); i++)
 		if(!strcmp(opcodes[i], opcode)) return machinecodes[i];
 
 	return NULL;
 }
-
-
 int getOpcodeSize(char* opcode){
 	for(int i=0; i<sizeof(machinecodes)/sizeof(char*); i++)
 		if(!strcmp(opcodes[i], opcode)) return size[i];
 
 	return 0;
 }
-
 int getBytesLength(char* operand){
     if(operand[0] == 'C') 
         return strlen(operand)-3;
     else 
         return 1;
 }
-
-
 char** parseLine(char* line){
     int i=0;
     char* col[10] = {};
@@ -51,11 +46,9 @@ char** parseLine(char* line){
         col[i] = (char*) malloc(strlen(ch));
         strcpy(col[i], ch);
         ch = strtok(NULL, " 	\n");
-    }
-    
+    }   
     return col;
 }
-
 int addSYMTAB(char* label, int loc){
 	int i;
 	for(i=0; symTab[i] != NULL; i++);
@@ -66,14 +59,11 @@ int addSYMTAB(char* label, int loc){
 	symTab[i] = row;
 	return 0;
 }
-
 int getLocFromSYMTAB(char* operand){
     if(operand==NULL) return 0;
 	for(int i=0; symTab[i] != NULL; i++)
-		if(!strcmp(operand, symTab[i]->label)) { 
-            // printf("[%x]", symTab[i]->loc);
+		if(!strcmp(operand, symTab[i]->label))
             return symTab[i]->loc;
-        }
 
     //can't ref address, then set oprand_address to 0.
 
@@ -81,6 +71,19 @@ int getLocFromSYMTAB(char* operand){
     // printf("%s, can't refernece operand!\n", operand);
 	return 0;
 }
+int parseLoc(char* line){
+    int ref;
+    char* loc = (char*)malloc(strlen(line));
+    strcpy(loc, line);
+
+    strtok(loc, "|");
+    strcpy(line, strtok(NULL, ""));
+    
+    sscanf(loc,"%X",&ref);
+    return ref;
+}
+
+
 
 void pass1(char* filename, char* output){
     int loc=0, start_address, temp;
@@ -144,19 +147,6 @@ void pass1(char* filename, char* output){
     fclose(fp);
     fclose(fpw);
 }
-
-int parseLoc(char* line){
-    int ref;
-    char* loc = (char*)malloc(strlen(line));
-    strcpy(loc, line);
-
-    strtok(loc, "|");
-    strcpy(line, strtok(NULL, ""));
-    
-    sscanf(loc,"%X",&ref);
-    return ref;
-}
-
 
 void pass2(char* filename, char* output){
 	char str[1024] = {};
