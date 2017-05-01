@@ -11,43 +11,31 @@ int hasLabel(char* str){ return !isspace(str[0]); }
 int isCommentLine(char* str){ return str[0] == '.'; }
 int isExistLabel(char* label){
     if(label==NULL) return 0;
-
-    if(label[0] == '#'){
-        // printf("direct");
-    }else if(label[0] == '@'){
-        // printf("indirect", label[0]);
-    }
 	for(int i=0; symTab[i] != NULL; i++)
 		if(!strcmp(label, symTab[i]->label)) return 1;
 	return 0;
 }
 
 char* getMachineCode(char* opcode){
-	for(int i=0; i<sizeof(machinecodes)/sizeof(char*); i++){
-		if(!strcmp(opcodes[i], opcode)){
-			return machinecodes[i];
-		}else{
-        }
-	}
+	for(int i=0; i<sizeof(machinecodes)/sizeof(char*); i++)
+		if(!strcmp(opcodes[i], opcode)) return machinecodes[i];
+
 	return NULL;
 }
 
 
 int getOpcodeSize(char* opcode){
-	for(int i=0; i<sizeof(machinecodes)/sizeof(char*); i++){
-		if(!strcmp(opcodes[i], opcode)){
-			return size[i];
-		}
-	}
+	for(int i=0; i<sizeof(machinecodes)/sizeof(char*); i++)
+		if(!strcmp(opcodes[i], opcode)) return size[i];
+
 	return 0;
 }
 
 int getBytesLength(char* operand){
-    if(operand[0] == 'C'){
+    if(operand[0] == 'C') 
         return strlen(operand)-3;
-    }else{
+    else 
         return 1;
-    }
 }
 
 
@@ -70,7 +58,8 @@ char** parseLine(char* line){
 
 int addSYMTAB(char* label, int loc){
 	int i;
-	for(i=0; symTab[i] != NULL; i++){}
+	for(i=0; symTab[i] != NULL; i++);
+    
 	symrow* row = (symrow*)malloc(sizeof(symrow)); 
 	row->label = label;
 	row->loc = loc;
@@ -208,7 +197,7 @@ void pass2(char* filename, char* output){
         }else if(!strcmp(opcode, "WORD")){
             char* b;
             sscanf(operand, "%d", &b);
-            sprintf(buf, "00%04X", b);
+            sprintf(buf, "%06X", b);
             sappend(&pbuf[obj_file_line], buf);
             text_record_cnt++;
             continue;
