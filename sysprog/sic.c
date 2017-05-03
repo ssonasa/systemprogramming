@@ -183,6 +183,7 @@ void pass2(char* filename, char* output){
         // break for END operand.
         if(!strcmp(opcode, "END")) break;
 
+        //Conting for newline
         if(text_record_cnt<MAX_TEXT_RECORD_SIZE){
             text_record_cnt++; 
         }else{
@@ -206,17 +207,13 @@ void pass2(char* filename, char* output){
 
 		}else if(!strcmp(opcode, "BYTE")){
              if(operand[0] =='C'){
-                char* sub;
-                sub = (char*)malloc(strlen(operand)-2);
-                memcpy(sub, &operand[2], strlen(operand)-3);  // substring [C'EOF'] => [EOF]
+                char* sub = substring(operand, 2, strlen(operand)-3);
                 for(int i=0;i<strlen(sub);i++){
                     sprintf(buf, "%X", sub[i]);
                     sappend(&pbuf[line], buf);
                 }
             }else if(operand[0] =='X'){
-                char sub[2];
-                memcpy(sub, &operand[2], 2);
-                sprintf(buf, "%s", sub);
+                sprintf(buf, "%s", substring(operand, 2, 2));
                 sappend(&pbuf[line], buf);
             }
 
@@ -235,14 +232,11 @@ void pass2(char* filename, char* output){
     }
 
     //Write end record
-    char* sub[6] = {};
-    memcpy(sub, &pbuf[0][7], 7);
-    sprintf(buf, "E%s", sub);
+    sprintf(buf, "E%s", substring(pbuf[0], 7, 7));
     sappend(&pbuf[line+1], buf);
 
     //Write filesize at header record.
-    memcpy(sub, &str[2], strlen(str)-1);
-    sprintf(buf, "%06s", sub);
+    sprintf(buf, "%06s", substring(str, 2, strlen(str)-2));
     sappend(&pbuf[0], buf);
 
     //Print console/file all line buf

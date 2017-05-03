@@ -20,7 +20,7 @@ void ssum(char** dest, char* str1, char* str2){
 void sappend(char** str1, char* str2){
     char* buf;
 
-    printf("--%d--", strlen(*str1));
+    // printf("--%d--", strlen(*str1));
     buf = (char*)malloc(strlen(*str1)*sizeof(char)+strlen(str2)*sizeof(char));
     strcat(buf, *str1);
     strcat(buf, str2);
@@ -42,6 +42,13 @@ void sinsert(char** str1, int idx, char *str2){
     *str1 = buf;
 }
 
+char* substring(char** str1, int start, int size){
+    char* sub;
+    sub = malloc(size*sizeof(char));
+    memcpy(sub, str1[start], size);
+    return sub;
+}
+
 int main(){
 
     char* string1 = "Hello";
@@ -50,20 +57,22 @@ int main(){
 
     char* strs[10] = {"Hello1234", "World", "test"};
     
-    printf("%s(%d)\n", strs[0], strs[0]);
-    printf("size:%d, %d, %d\n", strlen(strs[0])*sizeof(char), strlen(strs[1])*sizeof(char), strlen(result)*sizeof(char));
-    // sappend(&strs[0], strs[1]);
-    // strs[1] = result;
-    printf("%s(%d)\n", strs[0], strs[0]);
-    printf("size:%d, %d, %d\n", strlen(strs[0])*sizeof(char), strlen(strs[1])*sizeof(char), strlen(result)*sizeof(char));
+    // printf("%s(%d)\n", strs[0], strs[0]);
+    // printf("size:%d, %d, %d\n", strlen(strs[0])*sizeof(char), strlen(strs[1])*sizeof(char), strlen(result)*sizeof(char));
+    // // sappend(&strs[0], strs[1]);
+    // // strs[1] = result;
+    // printf("%s(%d)\n", strs[0], strs[0]);
+    // printf("size:%d, %d, %d\n", strlen(strs[0])*sizeof(char), strlen(strs[1])*sizeof(char), strlen(result)*sizeof(char));
 
 
 
-    sinsert(&strs[0], 9, "test");
+    // sinsert(&strs[0], 9, "test");
 
-    for(int i=0; i<3;i++){
-        printf("\n%s", strs[i], strs[i]);
-    }
+    printf("%s", substring(&strs[0], 0, 3));
+
+    // for(int i=0; i<3;i++){
+    //     printf("\n%s", strs[i], strs[i]);
+    // }
 
     return 0;
 }

@@ -61,3 +61,10 @@ void sinsert(char** str1, int idx, char *str2){
 
     *str1 = buf;
 }
+
+char* substring(char* str1, int start, int size){
+    char* sub;
+    sub = malloc(size*sizeof(char));
+    memcpy(sub, &str1[start], size);
+    return sub;
+}
