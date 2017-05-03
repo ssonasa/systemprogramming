@@ -2,9 +2,19 @@
 
 symrow* symTab[1024];
 
-int main(){
+int main(int argc, char* argv[]){
+
+    // if (argc != 3) {
+    //     fputs("Usage: $sic source.asm output.txt\n", stderr);
+    //     exit(1);
+    // }
+
+    // pass1(argv[1], "intermediate.txt");
+    // pass2("intermediate.txt", argv[2]);
+
     pass1("source.asm", "intermediate.txt");
     pass2("intermediate.txt", "output.txt");
+    // printf("Complete!");
 }
 
 
@@ -60,15 +70,11 @@ int addSYMTAB(char* label, int loc){
 	return 0;
 }
 int getLocFromSYMTAB(char* operand){
-    if(operand==NULL) return 0;
+    if(operand==NULL) return 0; //if not exist loc in SYMTAB.
 	for(int i=0; symTab[i] != NULL; i++)
 		if(!strcmp(operand, symTab[i]->label))
             return symTab[i]->loc;
 
-    //can't ref address, then set oprand_address to 0.
-
-    // TODO: setError flag;
-    // printf("%s, can't refernece operand!\n", operand);
 	return 0;
 }
 int parseLoc(char* line){
@@ -152,7 +158,7 @@ void pass2(char* filename, char* output){
 	char str[1024] = {};
     char buf[1024];
     char* pbuf[1024] = {};
-    int obj_file_line = 0;
+    int line = 0;
     int text_record_cnt = 9;
     int first_instruction = 0;
 
@@ -168,29 +174,36 @@ void pass2(char* filename, char* output){
 		char* label = cols[0];
 		char* opcode = cols[1];
 		char* operand = cols[2];
-        int operand_address = 0;
         if(linenum == 1 && !strcmp(opcode, "START")) {
             sprintf(buf, "H%s  %06X", label, loc);
-            sappend(&pbuf[obj_file_line], buf);
+            sappend(&pbuf[line], buf);
             continue;
         }
 
+        // break for END operand.
         if(!strcmp(opcode, "END")) break;
+
+        if(text_record_cnt<MAX_TEXT_RECORD_SIZE){
+            text_record_cnt++; 
+        }else{
+            line++;
+            text_record_cnt=0;
+            sprintf(buf, "T%06X", loc);
+            sappend(&pbuf[line], buf);
+        }
 
         char* code = getMachineCode(opcode);
         if(code != NULL){
-            if(isExistLabel(operand))
-                operand_address = getLocFromSYMTAB(operand);
-            else
-                operand_address = 0;
-            
+            //Write machineCode + operand_address
+            sprintf(buf, "%s%04X", code, getLocFromSYMTAB(operand));
+            sappend(&pbuf[line], buf);
+
         }else if(!strcmp(opcode, "WORD")){
             char* b;
             sscanf(operand, "%d", &b);
             sprintf(buf, "%06X", b);
-            sappend(&pbuf[obj_file_line], buf);
-            text_record_cnt++;
-            continue;
+            sappend(&pbuf[line], buf);
+
 		}else if(!strcmp(opcode, "BYTE")){
              if(operand[0] =='C'){
                 char* sub;
@@ -198,35 +211,20 @@ void pass2(char* filename, char* output){
                 memcpy(sub, &operand[2], strlen(operand)-3);  // substring [C'EOF'] => [EOF]
                 for(int i=0;i<strlen(sub);i++){
                     sprintf(buf, "%X", sub[i]);
-                    sappend(&pbuf[obj_file_line], buf);
+                    sappend(&pbuf[line], buf);
                 }
             }else if(operand[0] =='X'){
                 char sub[2];
                 memcpy(sub, &operand[2], 2);
                 sprintf(buf, "%s", sub);
-                sappend(&pbuf[obj_file_line], buf);
+                sappend(&pbuf[line], buf);
             }
-            text_record_cnt++;
-            continue;  
-        }else if(!strcmp(opcode, "RESW")){
-            text_record_cnt++;
-            continue;
-        }else if(!strcmp(opcode, "RESB")){
-            text_record_cnt++;
-            continue;
-        }
 
-        if(text_record_cnt<9){
-            text_record_cnt++; 
+        }else if(!strcmp(opcode, "RESW")){
+        }else if(!strcmp(opcode, "RESB")){
         }else{
-            obj_file_line++;
-            sprintf(buf, "T%06X", loc);
-            sappend(&pbuf[obj_file_line], buf);
-            text_record_cnt = 0;
+            printf("--------else!-----\n");
         }
-        sprintf(buf, "%s%04X", code, operand_address);
-        sappend(&pbuf[obj_file_line], buf);
-            
     }
 
 
@@ -237,16 +235,17 @@ void pass2(char* filename, char* output){
     }
 
     //Write end record
-    char sub[10];
+    char* sub[6] = {};
     memcpy(sub, &pbuf[0][7], 7);
     sprintf(buf, "E%s", sub);
-    sappend(&pbuf[obj_file_line+1], buf);
+    sappend(&pbuf[line+1], buf);
 
     //Write filesize at header record.
     memcpy(sub, &str[2], strlen(str)-1);
     sprintf(buf, "%06s", sub);
     sappend(&pbuf[0], buf);
 
+    //Print console/file all line buf
     for(int i=0; pbuf[i]!=NULL ;i++){
         printf("%s\n", pbuf[i]);
         fprintf(fpw, "%s\n", pbuf[i]);

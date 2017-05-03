@@ -5,6 +5,7 @@
 #include <string.h>
 #define LINE_BUF_SIZE 1024
 #define MAX_LINES 1024
+#define MAX_TEXT_RECORD_SIZE 9
 
 void pass1(char* filename, char* output);
 void pass2(char* filename, char* output);
