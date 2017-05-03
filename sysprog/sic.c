@@ -159,7 +159,7 @@ void pass2(char* filename, char* output){
     char buf[1024];
     char* pbuf[1024] = {};
     int line = 0;
-    int text_record_cnt = 9;
+    int text_record_cnt = 10;
     int first_instruction = 0;
 
 	FILE* fp = fopen(filename, "r");
@@ -183,11 +183,9 @@ void pass2(char* filename, char* output){
         // break for END operand.
         if(!strcmp(opcode, "END")) break;
 
-        //Conting for newline
-        if(text_record_cnt<MAX_TEXT_RECORD_SIZE){
-            text_record_cnt++; 
-        }else{
-            line++;
+        //Make Newline for output
+        if(text_record_cnt > 9){
+            line++; 
             text_record_cnt=0;
             sprintf(buf, "T%06X", loc);
             sappend(&pbuf[line], buf);
@@ -207,7 +205,7 @@ void pass2(char* filename, char* output){
 
 		}else if(!strcmp(opcode, "BYTE")){
              if(operand[0] =='C'){
-                char* sub = substring(operand, 2, strlen(operand)-3);
+                char* sub = substring(operand, 2, strlen(operand)-3); // Parse C'EOF' to EOF
                 for(int i=0;i<strlen(sub);i++){
                     sprintf(buf, "%X", sub[i]);
                     sappend(&pbuf[line], buf);
@@ -222,6 +220,8 @@ void pass2(char* filename, char* output){
         }else{
             printf("--------else!-----\n");
         }
+
+        text_record_cnt++;
     }
 
 
