@@ -36,6 +36,9 @@ int size[] = {3, 3, 2, 3, 2, 3, 3, 2, 3, 3,
                 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 
                 3, 3, 2, 2, 3, 1, 3, 2, 3, 4, 4};
 
+char* register_name[] = {"A", "X", "L", "B", "S", "T", "F"};
+char* register_address[] = {"0", "1", "2", "3", "4", "5", "6"};
+
 
 void sappend(char** str1, char* str2){
     char* buf;
@@ -67,4 +70,10 @@ char* substring(char* str1, int start, int size){
     sub = malloc(size*sizeof(char));
     memcpy(sub, &str1[start], size);
     return sub;
+}
+
+int strToHex(char* str){
+    int integer;
+    sscanf(str,"%X",&integer);
+    return integer;
 }

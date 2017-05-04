@@ -68,7 +68,11 @@ int main(){
 
     // sinsert(&strs[0], 9, "test");
 
-    printf("%s", substring(&strs[0], 0, 3));
+    // printf("%s", substring(&strs[0], 0, 3));
+
+    int intbuf = 0;
+    sscanf("#LENGTH", "#%d", &intbuf);
+    printf("%d", intbuf);
 
     // for(int i=0; i<3;i++){
     //     printf("\n%s", strs[i], strs[i]);
